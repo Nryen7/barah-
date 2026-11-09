@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --olive: #515638;
+    --olive-dark: #3C4229;
+    --olive-light: #6A714C;
+    --sand: #CCB798;
+    --sand-light: #E0D3BE;
+    --sand-dark: #A89270;
+    --earth: #8D7255;
+    --water: #6F8286;
+    --cream: #F8F5EF;
+    --cream-light: #FFFCF7;
+    --linen: #E3D8C6;
+    --ink: #2C3224;
+    --ink-muted: #57604F;
+    --line: #D8CEBD;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
+    background-color: #F8F5EF;
+    color: #2C3224;
+  }
+
+  /* When english is active */
+  html[lang="en"] body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+}
+
+/* Custom Serif heading font styling */
+.font-serif-ar {
+  font-family: 'Amiri', serif;
+}
+
+.font-sans-ar {
+  font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
+}
+
+/* Custom smooth scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F2ECE1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CCB798;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8D7255;
+}
+
+/* Hide scrollbar for clean horizontal scrollers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
