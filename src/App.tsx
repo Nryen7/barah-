@@ -55,7 +55,7 @@ export default function App() {
     document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.title =
       lang === 'ar'
-        ? 'بَراح | BARAH — للأرض حكاية | وادي البحير، البحرين'
+        ? 'براح | BARAH — للأرض حكاية'
         : 'BARAH | Wadi Al Buhair — Every Land Has a Story';
   }, [lang]);
 
