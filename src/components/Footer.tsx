@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowUpRight, Share2, Check, MapPin, Instagram } from 'lucide-react';
 import { Language } from '../types/barah';
+import { AcademicCredits } from './AcademicCredits';
 
 interface FooterProps {
   lang: Language;
@@ -208,6 +209,8 @@ export const Footer: React.FC<FooterProps> = ({ lang, onSelectTab }) => {
             </div>
           </div>
         </div>
+
+        <AcademicCredits />
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#F8F5EF]/60">

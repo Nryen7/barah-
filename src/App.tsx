@@ -15,6 +15,7 @@ import { VideoModal } from './components/VideoModal';
 import { LightboxModal } from './components/LightboxModal';
 import { AiGuideDrawer } from './components/AiGuideDrawer';
 import { Footer } from './components/Footer';
+import { AcademicAnnouncement } from './components/AcademicAnnouncement';
 import { Language, CartItem, Product } from './types/barah';
 import { soundscape } from './utils/soundscape';
 import { Sparkles } from 'lucide-react';
@@ -120,6 +121,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F8F5EF] text-[#303528] flex flex-col font-['IBM_Plex_Sans_Arabic',sans-serif]">
+      <AcademicAnnouncement />
+
       {/* Top Navbar Matching Screenshot */}
       <Navbar
         lang={lang}
