@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Navbar } from './components/Navbar';
 import { BottomNav } from './components/BottomNav';
 import { Hero } from './components/Hero';
 import { HomeHub } from './components/HomeHub';
 import { PageHero } from './components/PageHero';
 import { AboutSection } from './components/AboutSection';
-import { StationsSection } from './components/StationsSection';
+import { StationsSection, type StationVideo } from './components/StationsSection';
 import { EventsSection } from './components/EventsSection';
 import { ServicesSection } from './components/ServicesSection';
 import { SouvenirsSection } from './components/SouvenirsSection';
@@ -19,6 +19,8 @@ import { AcademicAnnouncement } from './components/AcademicAnnouncement';
 import { Language, CartItem, Product } from './types/barah';
 import { soundscape } from './utils/soundscape';
 import { Sparkles } from 'lucide-react';
+
+const BehindBarah = lazy(() => import('./exhibition/BehindBarah'));
 
 export default function App() {
   // Language State
@@ -35,6 +37,7 @@ export default function App() {
   const [isAiGuideOpen, setIsAiGuideOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [lightboxCaption, setLightboxCaption] = useState<string>('');
+  const [lightboxVideo, setLightboxVideo] = useState<StationVideo>();
 
   // Nature Soundscape
   const [soundPlaying, setSoundPlaying] = useState(false);
@@ -109,7 +112,8 @@ export default function App() {
     setCart([]);
   };
 
-  const handleOpenLightbox = (url: string, caption: string) => {
+  const handleOpenLightbox = (url: string, caption: string, video?: StationVideo) => {
+    setLightboxVideo(video);
     setLightboxImage(url);
     setLightboxCaption(caption);
   };
@@ -137,6 +141,11 @@ export default function App() {
 
       {/* Multi-Page Views (كل قسم في صفحة مستقلة) */}
       <main className="flex-1 pb-16 md:pb-0">
+        {activePage === 'behind-barah' && (
+          <Suspense fallback={<p role="status" className="p-8">{lang === 'ar' ? 'جارٍ تحميل المعرض…' : 'Loading exhibition…'}</p>}>
+            <BehindBarah lang={lang} />
+          </Suspense>
+        )}
         {/* VIEW 1: HOME PAGE */}
         {activePage === 'home' && (
           <div>
@@ -318,6 +327,8 @@ export default function App() {
       <LightboxModal
         imageUrl={lightboxImage}
         caption={lightboxCaption}
+        video={lightboxVideo}
+        lang={lang}
         onClose={() => setLightboxImage(null)}
       />
 

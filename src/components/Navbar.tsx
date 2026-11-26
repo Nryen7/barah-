@@ -30,6 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'home', labelAr: 'الرئيسية', labelEn: 'Home' },
     { id: 'about', labelAr: 'عن بَراح', labelEn: 'About' },
     { id: 'stations', labelAr: 'المحطات', labelEn: 'Stations' },
+    { id: 'behind-barah', labelAr: 'ما وراء بَراح', labelEn: 'Behind BARAH' },
     { id: 'events', labelAr: 'الفعاليات', labelEn: 'Events' },
     { id: 'services', labelAr: 'الخدمات', labelEn: 'Services' },
     { id: 'souvenirs', labelAr: 'ذكرى بَراح', labelEn: 'Keepsakes' },
@@ -242,6 +243,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 {isAr ? 'المحطات' : 'Stations'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNavClick('behind-barah')}
+                aria-current={activePage === 'behind-barah' ? 'page' : undefined}
+                className="col-span-2 rounded-2xl border border-[#D8CEBD] bg-[#FFFCF7] px-3 py-4 text-base font-bold text-[#303528] hover:bg-[#E3D8C6] aria-[current=page]:bg-[#E3D8C6]"
+              >
+                {isAr ? 'ما وراء بَراح' : 'Behind BARAH'}
               </button>
 
               {/* Row 3 */}

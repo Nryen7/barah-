@@ -1,13 +1,17 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import type { Language } from '../types/barah';
+import type { StationVideo } from './StationsSection';
 
 interface LightboxModalProps {
   imageUrl: string | null;
   caption: string;
+  video?: StationVideo;
+  lang: Language;
   onClose: () => void;
 }
 
-export const LightboxModal: React.FC<LightboxModalProps> = ({ imageUrl, caption, onClose }) => {
+export const LightboxModal: React.FC<LightboxModalProps> = ({ imageUrl, caption, video, lang, onClose }) => {
   if (!imageUrl) return null;
 
   return (
@@ -27,11 +31,14 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({ imageUrl, caption,
         </button>
 
         <div className="flex-1 overflow-hidden flex items-center justify-center bg-black">
-          <img
-            src={imageUrl}
-            alt={caption}
-            className="max-h-[80vh] w-auto object-contain"
-          />
+          {video ? (
+            <video src={imageUrl} poster={video.poster} controls playsInline preload="metadata"
+              aria-label={caption} className="max-h-[80vh] w-full object-contain">
+              {video.captions && <track kind="captions" src={video.captions} srcLang={lang} label={lang} default />}
+            </video>
+          ) : (
+            <img src={imageUrl} alt={caption} className="max-h-[80vh] w-auto object-contain" />
+          )}
         </div>
 
         {caption && (

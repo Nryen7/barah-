@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Compass,
   ArrowRight,
   ArrowLeft,
   Maximize2,
+  Play,
   Footprints,
   Eye,
   Coffee,
@@ -19,7 +20,9 @@ interface StationShot {
   id: string;
   label: string;
   src: string;
-  thumb: string;
+  thumb?: string;
+  kind?: 'image' | 'video';
+  captions?: Partial<Record<Language, string>>;
   altAr: string;
   altEn: string;
 }
@@ -230,10 +233,15 @@ const GALLERY_PHOTOS = [
   }
 ];
 
+export interface StationVideo {
+  poster?: string;
+  captions?: string;
+}
+
 interface StationsSectionProps {
   lang: Language;
   onNavigatePage: (page: any) => void;
-  onOpenLightbox: (imageUrl: string, title: string) => void;
+  onOpenLightbox: (url: string, title: string, video?: StationVideo) => void;
 }
 
 export const StationsSection: React.FC<StationsSectionProps> = ({
@@ -242,6 +250,31 @@ export const StationsSection: React.FC<StationsSectionProps> = ({
   onOpenLightbox
 }) => {
   const isAr = lang === 'ar';
+
+  const uploadedUrls = useRef<string[]>([]);
+  const [localShots, setLocalShots] = useState<Record<string, StationShot[]>>({});
+
+  useEffect(() => {
+    const urls = uploadedUrls.current;
+    return () => {
+      urls.forEach(url => URL.revokeObjectURL(url));
+      urls.length = 0;
+    };
+  }, []);
+
+  function addLocalVideo(station: StationCardData, file: File) {
+    if (!/^video\/(mp4|webm|ogg)$/.test(file.type) && !(!file.type && /\.(mp4|webm|ogv)$/i.test(file.name))) return;
+    const src = URL.createObjectURL(file);
+    uploadedUrls.current.push(src);
+    const existing = localShots[station.id] ?? [];
+    const shot: StationShot = {
+      id: src, src, kind: 'video',
+      label: String(station.shots.length + existing.length + 1).padStart(2, '0'),
+      altAr: file.name, altEn: file.name,
+    };
+    setLocalShots({ ...localShots, [station.id]: [...existing, shot] });
+    handleShotChange(station.id, station.shots.length + existing.length);
+  }
 
   // Active shot index per station card: { centre: 0, trail: 0, observatory: 0, majlis: 0 }
   const [activeShots, setActiveShots] = useState<Record<string, number>>({
@@ -335,7 +368,9 @@ export const StationsSection: React.FC<StationsSectionProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
             {STATIONS_CARDS.map((station) => {
               const activeShotIndex = activeShots[station.id] ?? 0;
-              const currentShot = station.shots[activeShotIndex] || station.shots[0];
+              const shots = [...station.shots, ...(localShots[station.id] ?? [])];
+              const currentShot = shots[activeShotIndex] ?? shots[0];
+              const isVideo = currentShot.kind === 'video';
 
               return (
                 <article
@@ -344,12 +379,18 @@ export const StationsSection: React.FC<StationsSectionProps> = ({
                 >
                   {/* Media container */}
                   <div className="relative aspect-[16/10] bg-[#3C4229] overflow-hidden">
-                    <img
-                      src={currentShot.src}
-                      alt={isAr ? currentShot.altAr : currentShot.altEn}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
-                      loading="lazy"
-                    />
+                    {isVideo ? (
+                      <video key={currentShot.src} src={currentShot.src} poster={currentShot.thumb}
+                        aria-label={isAr ? currentShot.altAr : currentShot.altEn} controls playsInline preload="metadata"
+                        className="h-full w-full object-contain">
+                        {currentShot.captions?.[lang] && (
+                          <track kind="captions" src={currentShot.captions[lang]} srcLang={lang} label={lang} default />
+                        )}
+                      </video>
+                    ) : (
+                      <img src={currentShot.src} alt={isAr ? currentShot.altAr : currentShot.altEn}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102" loading="lazy" />
+                    )}
 
                     {/* Badge */}
                     <span className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-medium border border-white/15">
@@ -362,11 +403,11 @@ export const StationsSection: React.FC<StationsSectionProps> = ({
                       onClick={() =>
                         onOpenLightbox(
                           currentShot.src,
-                          isAr ? `${station.titleAr} - ${currentShot.altAr}` : `${station.titleEn} - ${currentShot.altEn}`
+                          isAr ? `${station.titleAr} - ${currentShot.altAr}` : `${station.titleEn} - ${currentShot.altEn}`,
+                          isVideo ? { poster: currentShot.thumb, captions: currentShot.captions?.[lang] } : undefined
                         )
                       }
-                      title={isAr ? 'تكبير الصورة' : 'Expand Image'}
-                      aria-label={isAr ? 'تكبير صورة المحطة' : 'Expand station image'}
+                      aria-label={isAr ? 'تكبير المشهد' : 'Expand station view'}
                       className="absolute top-4 left-4 p-2.5 rounded-full bg-black/60 hover:bg-black/85 text-white backdrop-blur-md border border-white/20 transition-transform active:scale-90"
                     >
                       <Maximize2 className="w-4 h-4" />
@@ -382,7 +423,7 @@ export const StationsSection: React.FC<StationsSectionProps> = ({
                     <span className="text-[11px] font-semibold text-[#8D7255] px-1 shrink-0">
                       {isAr ? 'المشاهد:' : 'Views:'}
                     </span>
-                    {station.shots.map((shot, sIdx) => {
+                    {shots.map((shot, sIdx) => {
                       const isActive = sIdx === activeShotIndex;
                       return (
                         <button
@@ -397,12 +438,11 @@ export const StationsSection: React.FC<StationsSectionProps> = ({
                               : 'bg-white/80 hover:bg-white text-[#57604F] border border-[#D8CEBD]'
                           }`}
                         >
-                          <img
-                            src={shot.thumb}
-                            alt=""
-                            className="w-8 h-8 rounded-lg object-cover"
-                            loading="lazy"
-                          />
+                          {shot.thumb ? (
+                            <img src={shot.thumb} alt="" className="size-8 rounded-lg object-cover" loading="lazy" />
+                          ) : (
+                            <Play aria-hidden="true" className="m-2 size-4" />
+                          )}
                           <span className="text-xs font-mono font-bold px-1.5">
                             {shot.label}
                           </span>
@@ -410,6 +450,17 @@ export const StationsSection: React.FC<StationsSectionProps> = ({
                       );
                     })}
                   </div>
+
+                  <label className="block px-4 pt-3 text-xs text-[#57604F]">
+                    <span className="mb-2 block">{isAr ? 'معاينة فيديو من جهازك' : 'Preview a video from your device'}</span>
+                    <input type="file" accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogv"
+                      className="w-full text-xs file:me-2 file:rounded-lg file:border file:border-[#D8CEBD] file:px-2 file:py-1"
+                      onChange={event => {
+                        const file = event.currentTarget.files?.[0];
+                        if (file) addLocalVideo(station, file);
+                        event.currentTarget.value = '';
+                      }} />
+                  </label>
 
                   {/* Station Content */}
                   <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between">
