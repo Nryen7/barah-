@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import type { Mesh } from 'three';
 import { Canvas, useThree } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
 import type { MotionValue } from 'motion/react';
 import type { Language } from '../types/barah';
-import type { ConceptModel, Part, Point } from './models/types';
+import type { ConceptModel, Part } from './models/types';
 
 function CameraController({ progress }: { progress: MotionValue<number> | null }) {
   const { camera, invalidate } = useThree();
@@ -24,10 +25,31 @@ function CameraController({ progress }: { progress: MotionValue<number> | null }
   );
 }
 
-function ExplodedPart({ part, amount }: { part: Part; amount: number }) {
-  const position: Point = part.center.map((value, axis) => value + (part.offset?.[axis] ?? 0) * amount) as Point;
+function ExplodedPart({ part, amount, progress }: {
+  part: Part;
+  amount: number;
+  progress: MotionValue<number> | null;
+}) {
+  const mesh = useRef<Mesh>(null);
+  const invalidate = useThree(state => state.invalidate);
+
+  useEffect(() => {
+    const offset = part.offset;
+    const object = mesh.current;
+    if (!offset || !object) return;
+
+    const update = (value: number) => {
+      const [x, y, z] = part.center;
+      object.position.set(x + offset[0] * value, y + offset[1] * value, z + offset[2] * value);
+      invalidate();
+    };
+
+    update(progress?.get() ?? amount);
+    return progress?.on('change', update);
+  }, [part, amount, progress, invalidate]);
+
   return (
-    <mesh position={position} rotation={part.rotation}>
+    <mesh ref={mesh} position={part.center} rotation={part.rotation}>
       <boxGeometry args={part.size} />
       <meshStandardMaterial color={part.color} roughness={0.9} />
     </mesh>
@@ -65,7 +87,7 @@ export default function ExhibitionScene({ model, lang, explosion, showAnnotation
       <directionalLight position={[4, 8, 3]} intensity={2.1} />
       <CameraController progress={scrollProgress} />
       <group>
-        {model.parts.map(part => <ExplodedPart key={part.id} part={part} amount={explosion} />)}
+        {model.parts.map(part => <ExplodedPart key={part.id} part={part} amount={explosion} progress={scrollProgress} />)}
         {showAnnotation && (
           <Html position={model.annotation.position} center pointerEvents="none">
             <span aria-hidden="true" dir={lang === 'ar' ? 'rtl' : 'ltr'} className="block w-max rounded-full bg-[#303528] px-3 py-1 text-xs text-white">

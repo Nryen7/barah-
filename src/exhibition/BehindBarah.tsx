@@ -100,18 +100,24 @@ export default function BehindBarah({ lang }: { lang: Language }) {
               {annotated && <p className="mt-2 text-sm font-semibold">{model.annotation.label[lang]}</p>}
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <label className="flex w-full items-center gap-3 text-sm font-semibold">
-                {isAr ? 'تفكيك المجسّم' : 'Exploded view'}
-                <input type="range" min="0" max="100" value={explosion * 100}
-                  className="min-w-0 flex-1 accent-[#515638]"
-                  onChange={event => setExplosion(Number(event.target.value) / 100)} />
-              </label>
+              {scrollMode ? (
+                <p className="w-full text-sm text-[#57604F]">
+                  {isAr ? 'مرّر لأسفل لتفكيك المجسّم ولأعلى لإعادة تجميعه.' : 'Scroll down to separate the model and up to reassemble it.'}
+                </p>
+              ) : (
+                <label className="flex w-full items-center gap-3 text-sm font-semibold">
+                  {isAr ? 'تفكيك المجسّم' : 'Exploded view'}
+                  <input type="range" min="0" max="100" value={explosion * 100}
+                    className="min-w-0 flex-1 accent-[#515638]"
+                    onChange={event => setExplosion(Number(event.target.value) / 100)} />
+                </label>
+              )}
               <button type="button" className={control} aria-pressed={annotated} onClick={() => setAnnotated(!annotated)}>
                 {isAr ? 'تسميات' : 'Annotations'}
               </button>
               {!reducedMotion && (
                 <button type="button" className={control} aria-pressed={guided} onClick={() => setGuided(!guided)}>
-                  {isAr ? 'تحريك بالتمرير' : 'Scroll camera'}
+                  {isAr ? 'جولة بالتمرير' : 'Scroll-guided view'}
                 </button>
               )}
               <button type="button" className={control} onClick={() => { setGuided(false); setReset(value => value + 1); }}>
